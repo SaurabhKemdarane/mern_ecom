@@ -31,12 +31,12 @@ exports.signup=async(req,res)=>{
         const token=generateToken(secureInfo)
 
         // sending jwt token in the response cookies
-        res.cookie('token',token,{
-            sameSite:process.env.PRODUCTION==='true'?"None":'Lax',
-            maxAge:new Date(Date.now() + (parseInt(process.env.COOKIE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000))),
-            httpOnly:true,
-            secure:process.env.PRODUCTION==='true'?true:false
-        })
+        res.cookie('token', token, {
+            sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
+            maxAge: parseInt(process.env.COOKIE_EXPIRATION_DAYS) * 24 * 60 * 60 * 1000, // expires after N days
+            httpOnly: false,
+            secure: process.env.PRODUCTION === 'true'
+        });
 
         res.status(201).json(sanitizeUser(createdUser))
 
