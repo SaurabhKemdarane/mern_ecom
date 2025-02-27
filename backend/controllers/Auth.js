@@ -6,6 +6,7 @@ const Otp = require("../models/OTP");
 const { sanitizeUser } = require("../utils/SanitizeUser");
 const { generateToken } = require("../utils/GenerateToken");
 const PasswordResetToken = require("../models/PasswordResetToken");
+const jwt = require('jsonwebtoken');
 
 exports.signup=async(req,res)=>{
     try {
@@ -30,6 +31,10 @@ exports.signup=async(req,res)=>{
         // generating jwt token
         const token=generateToken(secureInfo)
 
+        // Store the generated token in the user's document
+        createdUser.token = token; // Assign the generated token to the user
+        await createdUser.save(); // Save the updated user document with the token
+
         // sending jwt token in the response cookies
         res.cookie('token', token, {
             sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
@@ -46,7 +51,9 @@ exports.signup=async(req,res)=>{
     }
 }
 
-exports.login=async(req,res)=>{
+exports.login = async (req, res) => {
+    console.log("Login function called");
+    
     try {
         // checking if user exists or not
         const existingUser=await User.findOne({email:req.body.email})
@@ -60,11 +67,15 @@ exports.login=async(req,res)=>{
             // generating jwt token
             const token=generateToken(secureInfo)
 
+            // Store the generated token in the user's document
+            existingUser.token = token; // Assign the generated token to the user
+            await existingUser.save(); // Save the updated user document with the token
+
             // sending jwt token in the response cookies
             res.cookie('token',token,{
                 sameSite:process.env.PRODUCTION==='true'?"None":'Lax',
                 maxAge:new Date(Date.now() + (parseInt(process.env.COOKIE_EXPIRATION_DAYS * 24 * 60 * 60 * 1000))),
-                httpOnly:true,
+                httpOnly:false,
                 secure:process.env.PRODUCTION==='true'?true:false
             })
             return res.status(200).json(sanitizeUser(existingUser))
@@ -232,29 +243,69 @@ exports.resetPassword=async(req,res)=>{
     }
 }
 
-exports.logout=async(req,res)=>{
+exports.logout = async (req, res) => {
+    console.log("Logout function called");
     try {
-        res.cookie('token',{
-            maxAge:0,
-            sameSite:process.env.PRODUCTION==='true'?"None":'Lax',
-            httpOnly:true,
-            secure:process.env.PRODUCTION==='true'?true:false
-        })
-        res.status(200).json({message:'Logout successful'})
+        // Clear the token from the user's document
+        if (req.user) {
+            const user = await User.findById(req.user._id);
+            if (user) {
+                user.token = null; 
+                await user.save(); 
+            }
+        }
+
+        // Clear the cookie
+        res.cookie('token', '', { // Set the cookie value to an empty string
+            maxAge: 0,
+            sameSite: process.env.PRODUCTION === 'true' ? "None" : 'Lax',
+            httpOnly: true,
+            secure: process.env.PRODUCTION === 'true' ? true : false
+        });
+        res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
         console.log(error);
+        res.status(500).json({ message: 'Error occurred during logout, please try again later' });
     }
 }
 
-exports.checkAuth=async(req,res)=>{
+exports.checkAuth = async (req, res) => {
     try {
-        if(req.user){
-            const user=await User.findById(req.user._id)
-            return res.status(200).json(sanitizeUser(user))
+        console.log(req.user);
+        // Check if req.user is set
+        if (req.user) {
+            const user = await User.findById(req.user._id);
+            return res.status(200).json(sanitizeUser(user));
         }
-        res.sendStatus(401)
+
+        // If req.user is not set, check for the token in cookies
+        const { token } = req.cookies;
+
+        if (!token) {
+            // If no token in cookies, try to find the user by token in the database
+            const user = await User.findOne({ token });
+
+            if (!user) {
+                return res.sendStatus(401); // Token not valid or user not found
+            }
+
+            // If user is found, set req.user
+            req.user = { _id: user._id, email: user.email }; // Set user info
+            return res.status(200).json(sanitizeUser(user)); // Return sanitized user info
+        }
+
+        // If token is found in cookies, verify it
+        const userFromToken = await User.findOne({ token });
+
+        if (!userFromToken) {
+            return res.sendStatus(401); // Token not valid or user not found
+        }
+
+        // If user is found, set req.user
+        req.user = { _id: userFromToken._id, email: userFromToken.email }; // Set user info
+        return res.status(200).json(sanitizeUser(userFromToken)); // Return sanitized user info
     } catch (error) {
         console.log(error);
-        res.sendStatus(500)
+        res.sendStatus(500);
     }
 }
