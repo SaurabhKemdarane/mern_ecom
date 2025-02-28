@@ -81,7 +81,7 @@ export const ProductUpdate = () => {
                             
                             {
                                 brands.map((brand)=>(
-                                    <MenuItem value={brand._id}>{brand.name}</MenuItem>
+                                    <MenuItem key={brand._id} value={brand._id}>{brand.name}</MenuItem>
                                 ))
                             }
 
@@ -95,7 +95,7 @@ export const ProductUpdate = () => {
                             
                             {
                                 categories.map((category)=>(
-                                    <MenuItem value={category._id}>{category.name}</MenuItem>
+                                    <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
                                 ))
                             }
 
@@ -136,7 +136,7 @@ export const ProductUpdate = () => {
                     <Stack rowGap={2}>
                         {
                             selectedProduct.images.map((image,index)=>(
-                                <TextField {...register(`image${index}`,{required:"Image is required",value:image})}/>
+                                <TextField key={index} {...register(`image${index}`,{required:"Image is required",value:image})}/>
                             ))
                         }
                     </Stack>

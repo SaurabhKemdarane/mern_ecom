@@ -69,8 +69,8 @@ export const AddProduct = () => {
                         <Select {...register("brand",{required:"Brand is required"})} labelId="brand-selection" label="Brand">
                             
                             {
-                                brands.map((brand)=>(
-                                    <MenuItem value={brand._id}>{brand.name}</MenuItem>
+                                brands.map((brand) => (
+                                    <MenuItem key={brand._id} value={brand._id}>{brand.name}</MenuItem>
                                 ))
                             }
 
@@ -83,8 +83,8 @@ export const AddProduct = () => {
                         <Select {...register("category",{required:"category is required"})} labelId="category-selection" label="Category">
                             
                             {
-                                categories.map((category)=>(
-                                    <MenuItem value={category._id}>{category.name}</MenuItem>
+                                categories.map((category) => (
+                                    <MenuItem key={category._id} value={category._id}>{category.name}</MenuItem>
                                 ))
                             }
 
@@ -124,10 +124,10 @@ export const AddProduct = () => {
 
                     <Stack rowGap={2}>
    
-                        <TextField {...register("image0",{required:"Image is required"})}/>
-                        <TextField {...register("image1",{required:"Image is required"})}/>
-                        <TextField {...register("image2",{required:"Image is required"})}/>
-                        <TextField {...register("image3",{required:"Image is required"})}/>
+                        <TextField key="image0" {...register("image0",{required:"Image is required"})}/>
+                        <TextField key="image1" {...register("image1",{required:"Image is required"})}/>
+                        <TextField key="image2" {...register("image2",{required:"Image is required"})}/>
+                        <TextField key="image3" {...register("image3",{required:"Image is required"})}/>
     
                     </Stack>
 

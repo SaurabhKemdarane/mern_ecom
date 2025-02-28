@@ -297,7 +297,7 @@ export const ProductList = () => {
                     <Grid gap={is700?1:2} container justifyContent={'center'} alignContent={'center'}>
                         {
                             products.map((product)=>(
-                                <ProductCard key={product._id} id={product._id} title={product.title} thumbnail={product.thumbnail} brand={product.brand.name} price={product.price} handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}/>
+                                <ProductCard key={product._id} id={product._id} title={product.title} thumbnail={product.thumbnail} brand={product.brand?.name} price={product.price} handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}/>
                             ))
                         }
                     </Grid>
